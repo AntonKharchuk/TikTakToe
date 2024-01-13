@@ -7,8 +7,10 @@ namespace TikTakToe
     {
         void ShowField(Field field);
         int[] GetUserMarkPlace();
-        //void ShowPlayerTurn(Marks mark);
-        //void ShowWinner(Marks mark);
+        void ShowPlayerTurn(Marks mark);
+        void ShowGameResult(Field field);   
+        void ShowWaitingForPlayer();
+        void ShowWaitingForOponentMove();
         void ShowAllFields(IList<Field> fields);
         string GetUserName();
         int GetUserFieldChoice(IList<Field> fields);
@@ -24,7 +26,7 @@ namespace TikTakToe
             {
                 for (int col = 0; col < 3; col++)
                 {
-                    Console.Write($" {GetMarkSymbolWithBorder(field.Area[row, col])} ");
+                    Console.Write($" {GetMarkSymbolWithBorder(field.Positions[row, col])} ");
                     if (col < 2)
                     {
                         Console.Write("|"); // Vertical separator between columns
@@ -97,6 +99,21 @@ namespace TikTakToe
         }
 
         public int GetUserFieldChoice(IList<Field> fields)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ShowWaitingForPlayer()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ShowGameResult(Field field)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ShowWaitingForOponentMove()
         {
             throw new NotImplementedException();
         }

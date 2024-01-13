@@ -13,7 +13,7 @@ namespace TikTakToe
             {
                 for (int col = 0; col < 3; col++)
                 {
-                    Console.Write($" {GetMarkSymbolWithBorder(field.Area[row, col])} ");
+                    Console.Write($" {GetMarkSymbolWithBorder(field.Positions[row, col])} ");
                     if (col < 2)
                     {
                         Console.Write("|"); // Vertical separator between columns
@@ -117,13 +117,14 @@ namespace TikTakToe
 
         public void ShowAllFields(IList<Field> fields)
         {
+            Console.Clear();
             Console.WriteLine("----------------------------------------");
-            Console.WriteLine("|\tID\t|\tPlayers\t|");
+            Console.WriteLine("|\tID\t|\tPlayers\t\t|");
             Console.WriteLine("----------------------------------------");
 
             foreach (var field in fields)
             {
-                Console.WriteLine($"|\t{field.Id}\t|\t{field.Players}\t|");
+                Console.WriteLine($"|\t{field.Id}\t|\t{field.Players}\t\t|");
                 Console.WriteLine("----------------------------------------");
             }
         }
@@ -159,6 +160,22 @@ namespace TikTakToe
             }
             return fieldId;
 
+        }
+
+        public void ShowWaitingForPlayer()
+        {
+            Console.WriteLine("Waiting For Player...");
+        }
+
+        public void ShowGameResult(Field field)
+        {
+            Console.WriteLine(field.Status.Name);
+            Console.ReadKey();
+        }
+
+        public void ShowWaitingForOponentMove()
+        {
+            Console.WriteLine("Waiting For Oponent");
         }
     }
 

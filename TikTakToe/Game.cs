@@ -8,65 +8,103 @@ namespace TikTakToe
         private IApiClient _apiClient;
         private IPrintGame _printGame;
         private Marks _currentPlayer;
+        private string _userName;
 
         public Game(IPrintGame printGame, IApiClient apiClient)
         {
             _apiClient = apiClient;
             _printGame = printGame;
-            _currentPlayer = Marks.X; // Start with player X
         }
-
-        public async void Run()
+        public async Task Run()
         {
-            string userName = _printGame.GetUserName();
+            _userName = _printGame.GetUserName();
+           
             while (true)
             {
-                var allFields = await _apiClient.GetAllItemsAsync();
-
-                _printGame.ShowAllFields(allFields);
-                var fieldId = _printGame.GetUserFieldChoice(allFields);
-
-                var currentField = allFields.Where(f => f.Id == fieldId).First();
-
-
-            }
-            bool gameWon = false;
-            bool gameTied = false;
-
-            do
-            {
-                _printGame.ShowField(_field);
-                _printGame.ShowPlayerTurn(_currentPlayer);
-
-                int[] userMove = _printGame.GetUserMarkPlace();
-                int row = userMove[0];
-                int col = userMove[1];
-
-                if (_field.SetMark(row, col, _currentPlayer))
+                var canEnterGame = false;
+                var fieldId = 0;
+                do
                 {
-                    gameWon = CheckForWin();
-                    gameTied = CheckForTie();
+                    var allFields = await _apiClient.GetAllItemsAsync();
+                    _printGame.ShowAllFields(allFields);
+                    fieldId = _printGame.GetUserFieldChoice(allFields);
+                    canEnterGame =  await WaitForPlayers(fieldId);
+                } while (!canEnterGame);
 
-                    // Switch to the next player
-                    _currentPlayer = (_currentPlayer == Marks.X) ? Marks.O : Marks.X;
+                await RunGame(fieldId);
+            }
+        }
+        private async Task RunGame(int fieldId)
+        {
+            var field = await _apiClient.GetItemByIdAsync(fieldId);
+
+            while (field.StatusId == 1)
+            {
+                _printGame.ShowField(field);
+                var currentTurn = (Marks)field.TurnId;
+                _printGame.ShowPlayerTurn(currentTurn);
+
+                if (currentTurn == _currentPlayer)
+                {
+                    int row = -1;
+                    int col = -1;
+                    do
+                    {
+                        int[] userMove = _printGame.GetUserMarkPlace();
+                        row = userMove[0];
+                        col = userMove[1];
+                    }
+                    while (!field.TrySetMark(row, col, _currentPlayer));
+                    await _apiClient.UpdateItemAsync(field);
                 }
                 else
                 {
-                    Console.WriteLine("Invalid move. Please try again.");
+                    _printGame.ShowWaitingForOponentMove();
+                    await Task.Delay(3000);
                 }
-
-            } while (!gameWon && !gameTied);
-
-            _printGame.ShowField(_field);
-
-            if (gameWon)
-            {
-                var winPlayer = (_currentPlayer == Marks.X) ? Marks.O : Marks.X;
-                _printGame.ShowWinner(winPlayer);
+                field = await _apiClient.GetItemByIdAsync(fieldId);
             }
-            else
+            _printGame.ShowField(field);
+            _printGame.ShowGameResult(field);
+        }
+        private async Task<bool> WaitForPlayers(int fieldId)
+        {
+            var field = await _apiClient.GetItemByIdAsync(fieldId);
+            if (field.Players == null)
             {
-                Console.WriteLine("The game is a tie!");
+                _currentPlayer = Marks.X;
+                await _apiClient.UpdatePlayersAsync(_userName, field.Id);
+            }
+            else if (field.Players.Split(',', StringSplitOptions.RemoveEmptyEntries).Length == 1)
+            {
+                _currentPlayer = Marks.O;
+                await _apiClient.UpdatePlayersAsync($"{field.Players},{_userName}", field.Id);
+                return true;
+            }
+            else if (field.Players.Split(',', StringSplitOptions.RemoveEmptyEntries).Length == 2)
+            {
+                return false;
+            }
+            int delayCount = 0;
+            while (true)
+            {
+                field = await _apiClient.GetItemByIdAsync(fieldId);
+                if (field.Players.Split(',', StringSplitOptions.RemoveEmptyEntries).Length == 2)
+                {
+                    return true;
+                }
+                else
+                {
+                    _printGame.ShowField(field);
+                    _printGame.ShowWaitingForPlayer();
+                    await Task.Delay(3000);
+                    delayCount++;
+                }
+                if (delayCount==10)
+                {
+                    await _apiClient.UpdatePlayersAsync(null, field.Id);
+                    return false;
+                }
             }
         }
     }

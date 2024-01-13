@@ -15,7 +15,7 @@ namespace TikTakToe
         Task<IList<Field>> GetAllItemsAsync();
         Task<Field> GetItemByIdAsync(int id);
         Task CreateItemAsync();
-        Task UpdateItemAsync(string positions, int id);
+        Task UpdateItemAsync(Field field);
         Task UpdatePlayersAsync(string newPlayersValue, int id);
     }
 
@@ -34,7 +34,13 @@ namespace TikTakToe
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<List<Field>>(content);
+            var resultDto= JsonConvert.DeserializeObject<List<FieldDto>>(content);
+            var result = new List<Field>();
+            foreach (var resultDtoField in resultDto)
+            {
+                result.Add(Parser.FromFieldDtoToField(resultDtoField));
+            }
+            return result;
         }
 
         public async Task<Field> GetItemByIdAsync(int id)
@@ -43,7 +49,8 @@ namespace TikTakToe
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<Field>(content);
+            var resultDto = JsonConvert.DeserializeObject<FieldDto>(content);
+            return Parser.FromFieldDtoToField(resultDto);
         }
 
         public async Task CreateItemAsync()
@@ -52,12 +59,15 @@ namespace TikTakToe
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task UpdateItemAsync(string positions, int id)
+        public async Task UpdateItemAsync(Field field)
         {
-            var json = JsonConvert.SerializeObject(positions);
+            var FieldDto = Parser.FromFieldToFieldDto(field);
+
+            var json = JsonConvert.SerializeObject(FieldDto.Positions);
+
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PutAsync($"/api/Fields/{id}", content);
+            var response = await _httpClient.PutAsync($"/api/Fields/{FieldDto.Id}", content);
             response.EnsureSuccessStatusCode();
         }
 

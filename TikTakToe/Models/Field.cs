@@ -3,9 +3,15 @@ using System.Runtime.InteropServices;
 
 namespace TikTakToe.Models
 {
+    public enum Marks
+    {
+        None = 0,
+        X = 1,
+        O = 2,
+    }
     public class Field:BaseEntity
     {
-        public string? Positions { get; set; }//0 none, 1 X, 2 O
+        public Marks[,] Positions { get; set; }//0 none, 1 X, 2 O
         /*
         0,1,2
         3,4,5
@@ -19,10 +25,14 @@ namespace TikTakToe.Models
         public int TurnId { get; set; }
         public Turn? Turn { get; set; }
 
-        public bool CanSetMark(int position)
+        public bool TrySetMark(int row, int col, Marks currentPlayer)
         {
-            var strPositions = Positions.Split(',');
-            return position >= 0 && position <= 9 && int.Parse(strPositions[position]) is (int) Marks.None;
+            if( row >= 0 && col >= 0 && col <= 2 && row <= 2 && Positions[row,col] is Marks.None)
+            {
+                Positions[row,col] = currentPlayer;
+                return true;
+            }
+            return false;
         }
     }
 }
