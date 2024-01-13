@@ -1,12 +1,17 @@
 ﻿
+using TikTakToe.Models;
+
 namespace TikTakToe
 {
     public interface IPrintGame
     {
         void ShowField(Field field);
         int[] GetUserMarkPlace();
-        void ShowPlayerTurn(Marks mark);
-        void ShowWinner(Marks mark);
+        //void ShowPlayerTurn(Marks mark);
+        //void ShowWinner(Marks mark);
+        void ShowAllFields(IList<Field> fields);
+        string GetUserName();
+        int GetUserFieldChoice(IList<Field> fields);
     }
 
     public class ConsoleGamePrinter : IPrintGame
@@ -61,6 +66,8 @@ namespace TikTakToe
             Console.WriteLine($"Player {GetMarkSymbol(mark)}'s turn.");
         }
 
+        
+
         private string GetMarkSymbol(Marks mark)
         {
             switch (mark)
@@ -77,6 +84,21 @@ namespace TikTakToe
         public void ShowWinner(Marks mark)
         {
             Console.WriteLine($"Player {GetMarkSymbol(mark)} wins!");
+        }
+
+        public void ShowAllFields(IList<Field> fields)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetUserName()
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetUserFieldChoice(IList<Field> fields)
+        {
+            throw new NotImplementedException();
         }
     }
 

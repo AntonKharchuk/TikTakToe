@@ -1,4 +1,6 @@
 ﻿
+using TikTakToe.Models;
+
 namespace TikTakToe
 {
     public class ConsoleGamePrinterWithArrowSelection : IPrintGame
@@ -111,6 +113,52 @@ namespace TikTakToe
                 default:
                     return " ";
             }
+        }
+
+        public void ShowAllFields(IList<Field> fields)
+        {
+            Console.WriteLine("----------------------------------------");
+            Console.WriteLine("|\tID\t|\tPlayers\t|");
+            Console.WriteLine("----------------------------------------");
+
+            foreach (var field in fields)
+            {
+                Console.WriteLine($"|\t{field.Id}\t|\t{field.Players}\t|");
+                Console.WriteLine("----------------------------------------");
+            }
+        }
+
+        public string GetUserName()
+        {
+            string userName = string.Empty;
+            bool userNameIsSet = false;
+            while (!userNameIsSet)
+            {
+                Console.Write("Type User Name: ");
+                userName = Console.ReadLine();
+                if (userName is not null)
+                {
+                    userNameIsSet = true;
+                }
+            }
+            return userName;
+        }
+
+        public int GetUserFieldChoice(IList<Field> fields)
+        {
+            int fieldId = 0;
+            bool fieldIdIsSet = false;
+            while (!fieldIdIsSet)
+            {
+                Console.Write("Type Field id: ");
+                fieldIdIsSet = int.TryParse(Console.ReadLine(), out fieldId);
+                if (fieldIdIsSet)
+                {
+                    fieldIdIsSet = fields.Select(f=> f.Id).Contains(fieldId);
+                }
+            }
+            return fieldId;
+
         }
     }
 
