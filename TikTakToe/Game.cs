@@ -18,27 +18,80 @@ namespace TikTakToe
         public async Task Run()
         {
             _userName = _printGame.GetUserName();
-           
+
             while (true)
             {
                 var canEnterGame = false;
                 var fieldId = 0;
                 do
                 {
-                    var allFields = await _apiClient.GetAllItemsAsync();
-                    _printGame.ShowAllFields(allFields);
-                    fieldId = _printGame.GetUserFieldChoice(allFields);
-                    canEnterGame =  await WaitForPlayers(fieldId);
+                    fieldId = await SlectField();
+                    canEnterGame = await WaitForPlayers(fieldId);
                 } while (!canEnterGame);
 
                 await RunGame(fieldId);
+            }
+        }
+        private async Task<int> SlectField()
+        {
+            int selectedIndex = 0;
+
+            IList<Field> fields = new List<Field>();
+            await UpdateView();
+            while (true)
+            {
+                var key = _printGame.GetUserKey();
+
+                switch (key)
+                {
+                    case ConsoleKey.W:
+                        if (CanMove(selectedIndex - 1))
+                        {
+                            selectedIndex--;
+                            await UpdateView();
+                        }
+                        break;
+                    case ConsoleKey.S:
+                        if (CanMove(selectedIndex + 1))
+                        {
+                            selectedIndex++;
+                            await UpdateView();
+                        }
+                        break;
+                    case ConsoleKey.C:
+                        await _apiClient.CreateItemAsync();
+                        await UpdateView();
+                        break;
+                    case ConsoleKey.Enter:
+                        return fields[selectedIndex].Id;
+                }
+            }
+            async Task UpdateView()
+            {
+                fields = await _apiClient.GetAllItemsAsync();
+                fields = fields.Where(f => {
+                    if (f.Players is null)
+                        return true;
+                    var players = f.Players.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                    for (int i = 0; i < players.Length; i++)
+                    {
+                        if (players[i] == _userName)
+                            return true;
+                    }
+                    return players.Length < 2;
+                }).ToList();
+                _printGame.ShowAllFieldsWithSelection(fields, selectedIndex);
+            }
+            bool CanMove(int index)
+            {
+                return index >= 0 && index < fields.Count;
             }
         }
         private async Task RunGame(int fieldId)
         {
             var field = await _apiClient.GetItemByIdAsync(fieldId);
 
-            while (field.StatusId == 1)
+            while (field.StatusId == 1|| field.StatusId == 5)
             {
                 _printGame.ShowField(field);
                 var currentTurn = (Marks)field.TurnId;
@@ -75,15 +128,38 @@ namespace TikTakToe
                 _currentPlayer = Marks.X;
                 await _apiClient.UpdatePlayersAsync(_userName, field.Id);
             }
-            else if (field.Players.Split(',', StringSplitOptions.RemoveEmptyEntries).Length == 1)
+            else
             {
-                _currentPlayer = Marks.O;
-                await _apiClient.UpdatePlayersAsync($"{field.Players},{_userName}", field.Id);
-                return true;
-            }
-            else if (field.Players.Split(',', StringSplitOptions.RemoveEmptyEntries).Length == 2)
-            {
-                return false;
+                var players = field.Players.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                if (players.Length == 2)
+                {
+                    if (players[0] == _userName)
+                    {
+                        _currentPlayer = Marks.X;
+                        return true;
+                    }
+                    else if (players[1] == _userName)
+                    {
+                        _currentPlayer = Marks.O;
+                        return true;
+                    }
+                    return false;
+                }
+
+                if (players.Length == 1)
+                {
+                    if (players[0] == _userName)
+                    {
+                        _currentPlayer = Marks.X;
+                    }
+                    else
+                    {
+                        _currentPlayer = Marks.O;
+                        await _apiClient.UpdatePlayersAsync($"{field.Players},{_userName}", field.Id);
+                        return true;
+                    }
+                }
             }
             int delayCount = 0;
             while (true)
@@ -102,7 +178,7 @@ namespace TikTakToe
                 }
                 if (delayCount==10)
                 {
-                    await _apiClient.UpdatePlayersAsync(null, field.Id);
+                    await _apiClient.UpdatePlayersAsync("", field.Id);
                     return false;
                 }
             }

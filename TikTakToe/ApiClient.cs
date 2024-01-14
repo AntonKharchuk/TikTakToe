@@ -73,7 +73,10 @@ namespace TikTakToe
 
         public async Task UpdatePlayersAsync(string newPlayersValue, int id)
         {
-            var response = await _httpClient.PutAsync($"/api/Fields/{id}/{newPlayersValue}", null);
+            var json = JsonConvert.SerializeObject(newPlayersValue);
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync($"/api/Fields/{id}/players", content);
             response.EnsureSuccessStatusCode();
         }
     }

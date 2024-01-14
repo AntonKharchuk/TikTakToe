@@ -3,7 +3,7 @@ using TikTakToe;
 
 var consoleGamePrinter = new ConsoleGamePrinterWithArrowSelection();
 
-string baseAddress = "https://localhost:7282/";
+string baseAddress = "https://188c-31-40-110-212.ngrok-free.app/";
 
 var apiClient = new ApiClient(baseAddress);
 

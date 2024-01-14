@@ -11,8 +11,8 @@ namespace TikTakToe
         void ShowGameResult(Field field);   
         void ShowWaitingForPlayer();
         void ShowWaitingForOponentMove();
-        void ShowAllFields(IList<Field> fields);
         string GetUserName();
-        int GetUserFieldChoice(IList<Field> fields);
+        void ShowAllFieldsWithSelection(IList<Field> fields, int selectedId);
+        ConsoleKey GetUserKey();
     }
 }
