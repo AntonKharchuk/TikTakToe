@@ -1,4 +1,6 @@
 ﻿
+using TikTakToe.Models;
+
 namespace TikTakToe
 {
     public class ConsoleGamePrinterWithArrowSelection : IPrintGame
@@ -11,7 +13,7 @@ namespace TikTakToe
             {
                 for (int col = 0; col < 3; col++)
                 {
-                    Console.Write($" {GetMarkSymbolWithBorder(field.Area[row, col])} ");
+                    Console.Write($" {GetMarkSymbolWithBorder(field.Positions[row, col])} ");
                     if (col < 2)
                     {
                         Console.Write("|"); // Vertical separator between columns
@@ -37,24 +39,25 @@ namespace TikTakToe
             var row = 0;
             var col = 0;
 
-            while (true) 
+            while (true)
             {
-                Console.CursorTop = 1 + row*2; 
-                Console.CursorLeft = 2 + col*6;
+                Console.CursorTop = 1 + row * 2;
+                Console.CursorLeft = 2 + col * 6;
 
                 var key = GetUserKey();
 
-                switch (key) {
-                    
+                switch (key)
+                {
+
                     case ConsoleKey.W:
                         if (CanMove(row - 1, col))
                         {
                             row--;
                         }
-                        
+
                         break;
                     case ConsoleKey.A:
-                        if (CanMove(row, col-1))
+                        if (CanMove(row, col - 1))
                         {
                             col--;
                         }
@@ -66,13 +69,13 @@ namespace TikTakToe
                         }
                         break;
                     case ConsoleKey.D:
-                        if (CanMove(row, col+1))
+                        if (CanMove(row, col + 1))
                         {
                             col++;
                         }
                         break;
                     case ConsoleKey.Enter:
-                        return new int[] {row, col};    
+                        return new int[] { row, col };
                 }
             }
 
@@ -83,7 +86,7 @@ namespace TikTakToe
             return row >= 0 && coll >= 0 && row <= 2 && coll <= 2;
         }
 
-        private  ConsoleKey GetUserKey()
+        public ConsoleKey GetUserKey()
         {
             var key = Console.ReadKey(true);
             return key.Key;
@@ -110,6 +113,69 @@ namespace TikTakToe
                     return "O";
                 default:
                     return " ";
+            }
+        }
+
+        public string GetUserName()
+        {
+            string userName = string.Empty;
+            bool userNameIsSet = false;
+            while (!userNameIsSet)
+            {
+                Console.Write("Type User Name: ");
+                userName = Console.ReadLine();
+                userName = userName.Trim();
+                if (!string.IsNullOrEmpty(userName))
+                {
+                    userNameIsSet = true;
+                    for (int i = 0; i < userName.Length; i++)
+                    {
+                        if (userName[i]==',')
+                        {
+                            userNameIsSet = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            return userName;
+        }
+
+        public void ShowWaitingForPlayer()
+        {
+            Console.WriteLine("Waiting For Player...");
+        }
+
+        public void ShowGameResult(Field field)
+        {
+            Console.WriteLine(field.Status.Name);
+            Console.ReadKey();
+        }
+
+        public void ShowWaitingForOponentMove()
+        {
+            Console.WriteLine("Waiting For Oponent");
+        }
+
+        public void ShowAllFieldsWithSelection(IList<Field> fields, int selectedIndex)
+        {
+            int tableBorderWidth = 65;
+            Console.Clear();
+            Console.WriteLine(new string('-', tableBorderWidth));
+            Console.WriteLine("|\tRoom\t|\tStatus\t\t|\tPlayers\t\t|");
+
+            for (int i = 0; i < fields.Count; i++)
+            {
+                if (i == selectedIndex)
+                    ShowItemWithBorders(fields[i], '=');
+                else
+                    ShowItemWithBorders(fields[i], '-');
+            }
+            void ShowItemWithBorders(Field field, char border)
+            {
+                Console.WriteLine(new string(border, tableBorderWidth));
+                Console.WriteLine($"|\t{field.Id}\t|\t{field.Status.Name}\t\t|\t{field.Players}");
+                Console.WriteLine(new string(border, tableBorderWidth));
             }
         }
     }
